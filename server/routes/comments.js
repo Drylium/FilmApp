@@ -4,63 +4,47 @@ import { auth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
-  try {
-    const { movieId } = req.query;
-    const comments = await Comment.find({ movieId }).populate("userId", "username");
-    res.json(comments);
-  } catch {
-    res.status(500).json({ error: "Kunde inte hämta kommentarer" });
-  }
+// GET comments for a movie
+router.get("/:movieId", async (req, res) => {
+  const comments = await Comment.findAll({
+    where: { movieId: req.params.movieId }
+  });
+
+  res.json(comments);
 });
 
+// CREATE comment
 router.post("/", auth, async (req, res) => {
-  try {
-    const { movieId, text } = req.body;
+  const { text, movieId } = req.body;
 
-    const comment = await Comment.create({
-      movieId,
-      text,
-      userId: req.user.userId
-    });
+  const comment = await Comment.create({
+    text,
+    movieId,
+    userId: req.user.id
+  });
 
-    res.json(comment);
-  } catch {
-    res.status(500).json({ error: "Kunde inte skapa kommentar" });
-  }
+  res.json(comment);
 });
 
+// UPDATE comment
 router.patch("/:id", auth, async (req, res) => {
-  try {
-    const { text } = req.body;
+  const { text } = req.body;
 
-    const updated = await Comment.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user.userId },
-      { text },
-      { new: true }
-    );
+  await Comment.update(
+    { text },
+    { where: { id: req.params.id, userId: req.user.id } }
+  );
 
-    if (!updated) return res.status(404).json({ error: "Kommentar hittades inte" });
-
-    res.json(updated);
-  } catch {
-    res.status(500).json({ error: "Kunde inte uppdatera kommentar" });
-  }
+  res.json({ message: "Comment updated" });
 });
 
+// DELETE comment
 router.delete("/:id", auth, async (req, res) => {
-  try {
-    const deleted = await Comment.findOneAndDelete({
-      _id: req.params.id,
-      userId: req.user.userId
-    });
+  await Comment.destroy({
+    where: { id: req.params.id, userId: req.user.id }
+  });
 
-    if (!deleted) return res.status(404).json({ error: "Kommentar hittades inte" });
-
-    res.json({ message: "Kommentar borttagen" });
-  } catch {
-    res.status(500).json({ error: "Kunde inte ta bort kommentar" });
-  }
+  res.json({ message: "Comment deleted" });
 });
 
 export default router;

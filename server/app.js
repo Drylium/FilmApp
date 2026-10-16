@@ -1,20 +1,24 @@
 import express from "express";
 import cors from "cors";
-import { connectDB } from "./config/db.js";
-import authRouter from "./routes/auth.js";
-import commentsRouter from "./routes/comments.js";
+
+import { connectDB, sequelize } from "./config/db.js";
+import authRoutes from "./routes/auth.js";
+import commentRoutes from "./routes/comments.js";
 
 const app = express();
-const port = 3000;
-
-connectDB();
 
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/auth", authRouter);
-app.use("/api/comments", commentsRouter);
+// Connect DB
+connectDB();
 
-app.listen(port, () => {
-  console.log(`Server is live at http://localhost:${port}`);
-});
+// Sync tables
+sequelize.sync();
+
+// Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/comments", commentRoutes);
+
+// Start server
+app.listen(3000, () => console.log("Server running on port 3000"));

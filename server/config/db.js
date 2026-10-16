@@ -1,11 +1,15 @@
-import mongoose from "mongoose";
+import { Sequelize } from "sequelize";
+
+export const sequelize = new Sequelize({
+  dialect: "sqlite",
+  storage: "./database.sqlite"
+});
 
 export const connectDB = async () => {
   try {
-    await mongoose.connect("mongodb://localhost:27017/filmapp");
-    console.log("MongoDB connected");
+    await sequelize.authenticate();
+    console.log("SQLite connected");
   } catch (error) {
-    console.error("MongoDB connection error:", error.message);
-    process.exit(1);
+    console.error("Database error:", error);
   }
 };

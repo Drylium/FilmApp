@@ -4,40 +4,37 @@ import jwt from "jsonwebtoken";
 import { User } from "../models/User.js";
 
 const router = express.Router();
-const JWT_SECRET = "supersecret";
 
+// REGISTER
 router.post("/register", async (req, res) => {
+  const { username, password } = req.body;
+
+  const hashed = await bcrypt.hash(password, 10);
+
   try {
-    const { username, password } = req.body;
-
-    const existing = await User.findOne({ username });
-    if (existing) return res.status(400).json({ error: "Användarnamnet är upptaget" });
-
-    const passwordHash = await bcrypt.hash(password, 10);
-    await User.create({ username, passwordHash });
-
-    res.json({ message: "Konto skapat" });
+    const user = await User.create({ username, password: hashed });
+    res.json({ message: "User created", user });
   } catch (error) {
-    res.status(500).json({ error: "Serverfel vid registrering" });
+    res.status(400).json({ error: "Username already exists" });
   }
 });
 
+// LOGIN
 router.post("/login", async (req, res) => {
-  try {
-    const { username, password } = req.body;
+  const { username, password } = req.body;
 
-    const user = await User.findOne({ username });
-    if (!user) return res.status(400).json({ error: "Fel användarnamn eller lösenord" });
+  const user = await User.findOne({ where: { username } });
+  if (!user) return res.status(404).json({ error: "User not found" });
 
-    const valid = await bcrypt.compare(password, user.passwordHash);
-    if (!valid) return res.status(400).json({ error: "Fel användarnamn eller lösenord" });
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) return res.status(403).json({ error: "Wrong password" });
 
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "7d" });
+  const token = jwt.sign(
+    { id: user.id, username: user.username },
+    "supersecret"
+  );
 
-    res.json({ token });
-  } catch (error) {
-    res.status(500).json({ error: "Serverfel vid login" });
-  }
+  res.json({ token });
 });
 
 export default router;
