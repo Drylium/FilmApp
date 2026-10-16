@@ -31,7 +31,10 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+.env.development
+.env.production
 
 # typescript
 *.tsbuildinfo
@@ -39,3 +42,17 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Sensitive files (recommended)
+*.keystore
+*.crt
+*.cert
+*.der
+*.csr
+
+# Logs
+*.log
+
+# Expo credentials (if using EAS)
+.eascache/
+.eas/
