@@ -16,7 +16,7 @@ export function AuthProvider({ children }) {
 
   async function login(newToken) {
     setToken(newToken);
-    await SecureStore.setItemAsync("token", newToken);   // ⭐ sparas permanent
+    await SecureStore.setItemAsync("token", newToken);   
   }
 
   async function logout() {
